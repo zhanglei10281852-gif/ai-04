@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/zhanglei10281852-gif/ai/internal/domain"
 	"github.com/zhanglei10281852-gif/ai/internal/identity"
@@ -135,9 +134,6 @@ func (s *CatalogService) RegisterSnapshot(ctx context.Context, batch domain.Data
 		}
 		return s.audit.Record(ctx, tx, "snapshot_registered", "dataset_snapshot", batch.ID, "success", nil)
 	})
-	if errors.Is(err, domain.ErrAlreadyExists) {
-		return batch, nil
-	}
 	return batch, err
 }
 

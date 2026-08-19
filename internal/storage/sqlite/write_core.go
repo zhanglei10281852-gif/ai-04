@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -87,17 +86,7 @@ func (q *queries) InsertDatasetSnapshot(ctx context.Context, batch domain.Datase
 		batch.SourceRevision, batch.SchemaFamily, batch.PartitionCount, batch.EstimatedRows, batch.State,
 		formatTime(batch.ExpiresAt), runID, batch.QuarantineNote, batch.Version,
 		formatTime(batch.CreatedAt), formatTime(batch.UpdatedAt))
-	translated := translateError("insert snapshot batch", err)
-	if !errors.Is(translated, domain.ErrConflict) {
-		return translated
-	}
-	var existingSchemaFamily string
-	lookupErr := q.q.QueryRowContext(ctx, `SELECT schema_family FROM dataset_snapshots
-        WHERE workspace_id = ? AND source_revision = ?`, batch.WorkspaceID, batch.SourceRevision).Scan(&existingSchemaFamily)
-	if lookupErr == nil && existingSchemaFamily != batch.SchemaFamily {
-		return fmt.Errorf("snapshot revision already registered: %w", domain.ErrAlreadyExists)
-	}
-	return translated
+	return translateError("insert snapshot batch", err)
 }
 
 func (q *queries) UpdateDatasetSnapshot(ctx context.Context, batch domain.DatasetSnapshot, expectedVersion int64) error {
